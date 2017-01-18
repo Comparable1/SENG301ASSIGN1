@@ -28,10 +28,15 @@ namespace seng301_asgn1 {
     /// on typed collections: https://www.youtube.com/watch?v=WtpoaacjLtI -- if it does not
     /// make sense, you can look up "Generic Collection" tutorials for C#.
     /// </summary>
+    public class VendingMachine : VendingMachineFactory {
+        int buttons = { get; set;}
+        var popList = new Dictionary<Pop, int>();
+        var coinList = new Dictionary<Coin, int>();
+    }
     public class VendingMachineFactory : IVendingMachineFactory {
 
         public VendingMachineFactory() {
-            // TODO: Implement
+            List<VendingMachine> vmList = new List<VendingMachine>();
         }
 
         public int createVendingMachine(List<int> coinKinds, int selectionButtonCount) {

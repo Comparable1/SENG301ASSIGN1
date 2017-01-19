@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 
 using Frontend1;
+using System;
 
 namespace seng301_asgn1 {
     /// <summary>
@@ -28,28 +29,78 @@ namespace seng301_asgn1 {
     /// on typed collections: https://www.youtube.com/watch?v=WtpoaacjLtI -- if it does not
     /// make sense, you can look up "Generic Collection" tutorials for C#.
     /// </summary>
-    public class VendingMachine : VendingMachineFactory {
-        int buttons = { get; set;}
-        var popList = new Dictionary<Pop, int>();
-        var coinList = new Dictionary<Coin, int>();
+    /// 
+
+    public class VendingMachine : VendingMachineFactory
+    {
+        int buttons = 0;
+        public Dictionary<string, int> popList = new Dictionary<string, int>();
+        public Dictionary<int, int> coinKindList = new Dictionary<int, int>();
+        public Dictionary<int, int> coinReturn = new Dictionary<int, int>();
+        public Dictionary<int, int> coinChange = new Dictionary<int, int>();
+        public void setButtons(int a)
+        {
+            buttons = a;
+        }
+
+        public int getButtons()
+        {
+            return this.buttons;
+        }
     }
     public class VendingMachineFactory : IVendingMachineFactory {
-
+        public int vmCount = -1;
+        public int cc = 0;
+        List<VendingMachine> vmList = new List<VendingMachine>();
         public VendingMachineFactory() {
-            List<VendingMachine> vmList = new List<VendingMachine>();
+
         }
 
         public int createVendingMachine(List<int> coinKinds, int selectionButtonCount) {
-            // TODO: Implement
-            return 0;
+            VendingMachine VM = new VendingMachine();
+            if (selectionButtonCount > coinKinds.Count)
+            {
+                throw new Exception("Cannot have more pops than buttons, please try again");
+            }
+            foreach(int c in coinKinds) {
+                if (VM.coinKindList.ContainsKey(c))
+                {
+                    throw new Exception("This coin already exists");
+                }
+                if (c <= 0)
+                {
+                    throw new Exception("Cannot have negative or zero currency");
+                }
+                VM.coinKindList.Add(c, 0);
+                VM.coinReturn.Add(cc, 0);
+                VM.coinChange.Add(cc, 0);
+                cc++;
+            }
+            VM.setButtons(selectionButtonCount);
+            vmList.Add(VM);
+            vmCount++;
+            return vmCount;
         }
 
         public void configureVendingMachine(int vmIndex, List<string> popNames, List<int> popCosts) {
-            // TODO: Implement
+            VendingMachine VM = vmList[vmIndex];
+            if(popNames.Count != popCosts.Count)
+            {
+                throw new Exception("List sizes do not match, please try again");
+            }
+            else if(popNames.Count <= 0 || popCosts.Count <= 0)
+            {
+                throw new Exception("List is empty, please try again");
+            }
+            for(int i = 0; i < popNames.Count; i++)
+            {
+                VM.popList.Add(popNames[i], popCosts[i]);
+            }
         }
 
         public void loadCoins(int vmIndex, int coinKindIndex, List<Coin> coins) {
-            // TODO: Implement
+            VendingMachine VM = vmList[vmIndex];
+            VM.coinChange[coinKindIndex] = (int) coins[coinKindIndex];
         }
 
         public void loadPops(int vmIndex, int popKindIndex, List<Pop> pops) {

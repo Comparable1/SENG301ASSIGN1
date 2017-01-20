@@ -33,11 +33,16 @@ namespace seng301_asgn1 {
 
     public class VendingMachine : VendingMachineFactory
     {
-        int buttons = 0;
+        public int buttons = 0;
         public Dictionary<string, int> popList = new Dictionary<string, int>();
+        //              <Pop type, how many>
+        public Dictionary<Pop, int> popChange = new Dictionary<Pop, int>();
         public Dictionary<int, int> coinKindList = new Dictionary<int, int>();
-        public Dictionary<int, int> coinReturn = new Dictionary<int, int>();
-        public Dictionary<int, int> coinChange = new Dictionary<int, int>();
+        //               <Coin type, how many>
+        public Dictionary<Coin, int> coinProfit = new Dictionary<Coin, int>();
+        //               <Coin type, how many>
+        public Dictionary<Coin, int> coinChange = new Dictionary<Coin, int>();
+        public Dictionary<int, string> popDispence = new Dictionary<int, string>();
         public void setButtons(int a)
         {
             buttons = a;
@@ -47,10 +52,20 @@ namespace seng301_asgn1 {
         {
             return this.buttons;
         }
+
+        public int getProfit()
+        {
+            int profit = 0;
+            foreach(var c in coinProfit)
+            {
+                profit += c.Key.Value * c.Value;
+            }
+            return profit;
+        }
     }
     public class VendingMachineFactory : IVendingMachineFactory {
         public int vmCount = -1;
-        public int cc = 0;
+        public int cCounter = 0;
         List<VendingMachine> vmList = new List<VendingMachine>();
         public VendingMachineFactory() {
 
@@ -58,10 +73,6 @@ namespace seng301_asgn1 {
 
         public int createVendingMachine(List<int> coinKinds, int selectionButtonCount) {
             VendingMachine VM = new VendingMachine();
-            if (selectionButtonCount > coinKinds.Count)
-            {
-                throw new Exception("Cannot have more pops than buttons, please try again");
-            }
             foreach(int c in coinKinds) {
                 if (VM.coinKindList.ContainsKey(c))
                 {
@@ -71,10 +82,11 @@ namespace seng301_asgn1 {
                 {
                     throw new Exception("Cannot have negative or zero currency");
                 }
+                Coin temp = new Coin(c);
                 VM.coinKindList.Add(c, 0);
-                VM.coinReturn.Add(cc, 0);
-                VM.coinChange.Add(cc, 0);
-                cc++;
+                VM.coinProfit.Add(temp, 0);
+                VM.coinChange.Add(temp, 0);
+                cCounter++;
             }
             VM.setButtons(selectionButtonCount);
             vmList.Add(VM);
@@ -84,7 +96,11 @@ namespace seng301_asgn1 {
 
         public void configureVendingMachine(int vmIndex, List<string> popNames, List<int> popCosts) {
             VendingMachine VM = vmList[vmIndex];
-            if(popNames.Count != popCosts.Count)
+            if (VM.buttons < popNames.Count)
+            {
+                throw new Exception("Cannot have more pops than buttons, please try again");
+            }
+            if (popNames.Count != popCosts.Count)
             {
                 throw new Exception("List sizes do not match, please try again");
             }
@@ -95,24 +111,64 @@ namespace seng301_asgn1 {
             for(int i = 0; i < popNames.Count; i++)
             {
                 VM.popList.Add(popNames[i], popCosts[i]);
+                VM.popDispence.Add(i, popNames[i]); 
+                Pop temp1 = new Pop(popNames[i]);
+                VM.popChange.Add(temp1, 0);
             }
         }
 
         public void loadCoins(int vmIndex, int coinKindIndex, List<Coin> coins) {
             VendingMachine VM = vmList[vmIndex];
-            VM.coinChange[coinKindIndex] = (int) coins[coinKindIndex];
+            try
+            {
+                Coin Key = coins[coinKindIndex];
+                if (VM.coinChange.ContainsKey(Key))
+                {
+                    VM.coinChange[coins[coinKindIndex]] += 1;
+                }
+            }
+            catch(ArgumentOutOfRangeException e)
+            {
+                Console.WriteLine("You have entered an invalid index and caused a " + e + ", please try again" );
+            }
+
         }
 
         public void loadPops(int vmIndex, int popKindIndex, List<Pop> pops) {
-            // TODO: Implement
+            VendingMachine VM = vmList[vmIndex];
+            try
+            {
+                Pop Key = pops[popKindIndex];
+                if (VM.popChange.ContainsKey(Key))
+                {
+                    VM.popChange[pops[popKindIndex]] += 1;
+                }
+            }
+            catch(ArgumentOutOfRangeException e)
+            {
+                Console.WriteLine("You have entered an invalid index and caused a " + e + ", please try again");
+            }
+            catch(ArgumentNullException e)
+            {
+                Console.WriteLine("You have provided a null value and causes a " + e + ", please try again");
+            }
+            
         }
 
         public void insertCoin(int vmIndex, Coin coin) {
-            // TODO: Implement
+            VendingMachine VM = vmList[vmIndex];
+            foreach (var c in VM.coinProfit)
+            {
+                if (c.Key == coin)
+                {
+                    VM.coinProfit[c.Key] += 1;
+                }
+            }
         }
 
         public void pressButton(int vmIndex, int value) {
-            // TODO: Implement
+            VendingMachine VM = vmList[vmIndex];
+
         }
 
         public List<Deliverable> extractFromDeliveryChute(int vmIndex) {
@@ -122,10 +178,13 @@ namespace seng301_asgn1 {
 
         public List<IList> unloadVendingMachine(int vmIndex) {
             // TODO: Implement
+            Console.ReadKey();
             return new List<IList>() {
                 new List<Coin>(),
                 new List<Coin>(),
                 new List<Pop>() };
-            }
+                
+        }
     }
+    
 }
